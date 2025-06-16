@@ -1,0 +1,202 @@
+/*Arduino Robot.
+  created by the SriTu Tech team.
+  Read the code below and use it for any of your creations.
+*/
+ 
+#include <Servo.h>//include servo library
+Servo servo;//create object
+int Spoint = 105; //servo center point
+int Lvalue;
+int Rvalue;
+int dis;
+bool change;
+ 
+//motor 0ne
+#define ENA 5
+#define IN1 7
+#define IN2 8
+ 
+//motor two
+#define ENB 6
+#define IN3 10
+#define IN4 11
+ 
+ 
+void setup() {
+  Serial.begin(9600);//enable serial monitor
+  pinMode(3, OUTPUT);//trig pin
+  pinMode(4, INPUT);//echo pin
+  pinMode(ENA, OUTPUT);//motor pins
+  pinMode(ENB, OUTPUT);//motor pins
+  pinMode(IN1, OUTPUT);//motor pins
+  pinMode(IN2, OUTPUT);//motor pins
+  pinMode(IN3, OUTPUT);//motor pins
+  pinMode(IN4, OUTPUT);//motor pins
+  servo.attach(9);//define servo pin
+  servo.write(Spoint);//servo motor start point
+  delay(2000);
+  start();
+}
+ 
+void loop() {
+  cuterobot();//following code
+  //obstacle ();//obstacle code
+}
+ 
+void obstacle () {
+  dis = distance ();
+  if (dis <= 9) {
+    motors('S', 0);
+    motors('B', 250);
+    delay(50);
+    motors('S', 0);
+    Lvalue = leftsee();
+    Serial.println(Lvalue);
+    Rvalue = rightsee();
+    Serial.println(Rvalue);
+    if (Lvalue < Rvalue) {
+      motors('R', 130);
+      delay(300);
+      motors('S', 0);
+    } else if (Lvalue > Rvalue) {
+      motors('L', 130);
+      delay(300);
+      motors('S', 0);
+    }
+  } else {
+    motors('F', 130);
+  }
+ 
+}
+ 
+void cuterobot() {
+  byte stay = 0;
+  change = true;
+ 
+  dis = distance ();
+  if (dis <= 7 ) {
+    motors('B', 220);
+    delay(250);
+    motors('S', 0);
+    for (byte a = 0; a < 4; a++) {
+      servo.write(90);
+      delay(100);
+      servo.write(120);
+      delay(100);
+      servo.write(Spoint);
+    }
+    while (change) {
+      motors('F', 220);
+      delay(150);
+      motors('B', 220);
+      delay(150);
+      motors('S', 0);
+      delay(2000);
+      stay++;
+      Serial.println("updown");
+      if (stay == 3) {
+        for (byte a = 0; a < 4; a++) {
+          servo.write(90);
+          delay(100);
+          servo.write(120);
+          delay(100);
+          servo.write(Spoint);
+        }
+        change = false;
+        Serial.println("rotete");
+      }
+    }
+ 
+  } else if (dis >= 10 && dis <= 15) {
+    motors('F', 200);
+    change = true;
+    Serial.println("turn");
+  } else {
+    motors('S', 0);
+  }
+} 
+ 
+//ultrasonic sensor readings
+int distance () {
+  digitalWrite(3, LOW);
+  delayMicroseconds(4);
+  digitalWrite(3, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(3, LOW);
+ 
+  int t = pulseIn(4, HIGH);//input pulse and save it veriable
+  int cm = t / 29 / 2; //time convert distance
+  return cm;
+}
+ 
+//backward ='B',Forward ='F',turn left ='L',turn right ='R',stop ='S'
+void motors(char action, int Speed) {
+  if (action == 'B') {
+    digitalWrite(ENA, Speed);
+    digitalWrite(ENB, Speed);
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, HIGH);
+  } else if (action == 'F') {
+    digitalWrite(ENA, Speed);
+    digitalWrite(ENB, Speed);
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    digitalWrite(IN3, HIGH);
+    digitalWrite(IN4, LOW);
+  } else if (action == 'L') {
+    digitalWrite(ENA, Speed);
+    digitalWrite(ENB, Speed);
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    digitalWrite(IN3, HIGH);
+    digitalWrite(IN4, LOW);
+  } else if (action == 'R') {
+    digitalWrite(ENA, Speed);
+    digitalWrite(ENB, Speed);
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, HIGH);
+  } else if (action == 'S') {
+    digitalWrite(ENA, Speed);
+    digitalWrite(ENB, Speed);
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, LOW);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, LOW);
+  }
+}
+void start() {
+  servo.write(0);
+  delay(500);
+  servo.write(180);
+  delay(500);
+  for (byte a = 0; a < 5; a++) {
+    servo.write(90);
+    delay(100);
+    servo.write(120);
+    delay(100);
+  }
+  servo.write(Spoint);
+  delay(200);
+  motors('L', 120);
+  delay(1000);
+  motors('S', 0);
+}
+ 
+int leftsee() {
+  servo.write(180);
+  dis = distance ();
+  delay(1000);
+  return dis;
+ 
+}
+int rightsee() {
+  servo.write(30);
+  dis = distance ();
+  delay(1000);
+  servo.write(Spoint);
+  return dis;
+}
